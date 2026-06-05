@@ -1,0 +1,16 @@
+{
+  "duration": 60,
+  "loop": true,
+  "tracks": [
+    {
+      "type": "video",
+      "name": "Depthkit",
+      "clips": []
+    },
+    {
+      "type": "audio",
+      "name": "Audio",
+      "clips": []
+    }
+  ]
+}

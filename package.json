@@ -1,0 +1,21 @@
+{
+  "name": "cd3-volumetric",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "description": "Depthkit volumetric video rendered in three.js for Meta Quest 3 (WebXR)",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --host"
+  },
+  "dependencies": {
+    "depthkit": "^2.0.0",
+    "kill-port": "^2.0.1",
+    "three": "^0.159.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-basic-ssl": "^2.3.0",
+    "vite": "^7.0.0"
+  }
+}

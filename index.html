@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>CD3 — Depthkit Volumetric (WebXR)</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden;
+        background: #14171c;
+        font-family: system-ui, sans-serif;
+        color: #e6e6e6;
+      }
+      #app {
+        position: fixed;
+        inset: 0;
+      }
+      canvas {
+        display: block;
+      }
+
+      /* --- instructions window ------------------------------------------ */
+      #instructions {
+        position: fixed;
+        top: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        max-width: min(92vw, 420px);
+        padding: 14px 18px 16px;
+        background: rgba(20, 23, 28, 0.82);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        backdrop-filter: blur(6px);
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+        z-index: 10;
+        font-size: 14px;
+        line-height: 1.5;
+        transition: opacity 0.4s ease;
+      }
+      #instructions.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+      #instructions h1 {
+        margin: 0 0 8px;
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+      #instructions ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      #instructions li {
+        display: flex;
+        gap: 8px;
+        align-items: baseline;
+      }
+      #instructions .hint {
+        margin: 10px 0 0;
+        font-size: 12px;
+        color: #9aa3ad;
+      }
+      .keys {
+        display: inline-block;
+        padding: 1px 7px;
+        border-radius: 5px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 12px;
+        white-space: nowrap;
+      }
+      #instructions-close {
+        position: absolute;
+        top: 8px;
+        right: 10px;
+        width: 24px;
+        height: 24px;
+        border: none;
+        border-radius: 6px;
+        background: transparent;
+        color: #c8ced6;
+        font-size: 18px;
+        line-height: 1;
+        cursor: pointer;
+      }
+      #instructions-close:hover {
+        background: rgba(255, 255, 255, 0.12);
+        color: #fff;
+      }
+
+      /* --- persistent help button --------------------------------------- */
+      #help-button {
+        position: fixed;
+        bottom: 18px;
+        left: 18px;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(20, 23, 28, 0.82);
+        backdrop-filter: blur(6px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        color: #e6e6e6;
+        font-size: 22px;
+        font-weight: 600;
+        cursor: pointer;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s ease, transform 0.1s ease;
+      }
+      #help-button:hover {
+        background: rgba(38, 44, 54, 0.92);
+      }
+      #help-button:active {
+        transform: scale(0.94);
+      }
+      #help-button.hidden {
+        display: none;
+      }
+
+      /* --- timeline transport ------------------------------------------- */
+      #transport {
+        position: fixed;
+        bottom: 18px;
+        left: 78px; /* clear the bottom-left help button */
+        right: 16px;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 14px;
+        background: rgba(20, 23, 28, 0.82);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        backdrop-filter: blur(6px);
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+      }
+      #transport.hidden {
+        display: none;
+      }
+      #tl-play {
+        flex: 0 0 auto;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.08);
+        color: #e6e6e6;
+        font-size: 13px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #tl-play:hover {
+        background: rgba(255, 255, 255, 0.16);
+      }
+      #tl-scrub {
+        position: relative;
+        flex: 1 1 auto;
+        height: 28px; /* generous touch target */
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        touch-action: none; /* let us own the drag gesture */
+      }
+      #tl-scrub::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 5px;
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.16);
+      }
+      #tl-fill {
+        position: absolute;
+        left: 0;
+        width: 0%;
+        height: 5px;
+        border-radius: 3px;
+        background: #4a90d9;
+      }
+      #tl-handle {
+        position: absolute;
+        left: 0%;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #fff;
+        transform: translateX(-50%);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+        pointer-events: none;
+      }
+      #tl-time {
+        flex: 0 0 auto;
+        font-variant-numeric: tabular-nums;
+        font-size: 12px;
+        color: #c8ced6;
+        min-width: 76px;
+        text-align: right;
+      }
+
+      /* --- touch movement joystick -------------------------------------- */
+      .joystick {
+        position: fixed;
+        width: 120px;
+        height: 120px;
+        margin: 0;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.25);
+        background: rgba(255, 255, 255, 0.06);
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        z-index: 5;
+      }
+      .joystick-knob {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.35);
+        transform: translate(-50%, -50%);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <div id="instructions">
+      <button id="instructions-close" aria-label="Hide instructions">×</button>
+      <h1>Move around</h1>
+      <ul>
+        <li><span class="keys">W A S D</span> / arrow keys — move</li>
+        <li><span class="keys">Shift</span> — sprint</li>
+        <li><span class="keys">Click + drag</span> — look around</li>
+        <li><span class="keys">Touch: left side</span> — move · drag right — look</li>
+      </ul>
+      <p class="hint">
+        On a headset? Tap <b>ENTER VR</b> for room-scale. In VR, hold a
+        <b>grip button</b> to grab and pull yourself through the space — use
+        <b>both grips</b> to also turn.
+      </p>
+    </div>
+
+    <button id="help-button" aria-label="Show movement instructions" title="Movement help">?</button>
+
+    <div id="transport">
+      <button id="tl-play" aria-label="Play">▶</button>
+      <div id="tl-scrub" role="slider" aria-label="Scrub timeline">
+        <div id="tl-fill"></div>
+        <div id="tl-handle"></div>
+      </div>
+      <span id="tl-time">0:00 / 0:00</span>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
