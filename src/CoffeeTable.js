@@ -65,24 +65,21 @@ export function createCoffeeTable({ targetWidth = 2.5, onReady } = {}) {
     envMapIntensity: 1,
   });
 
-  // --- Glass.mat → tempered glass top ---------------------------------------
-  // Unity colour white, smoothness 0.5, transparent. Recreated with physical
-  // transmission for genuine see-through refraction; roughness pulled in from
-  // 0.5 toward clear glass so it doesn't read as frosted under transmission.
+  // --- Glass.mat → simplified glass top for mobile VR -----------------------
+  // Replaced heavy physical transmission with simple opacity for a "fake 
+  // refraction" look that performs significantly better on Quest 3.
   const glassMat = new THREE.MeshPhysicalMaterial({
     color: 0xE1EEF9,
     metalness: 0,
-    roughness: 0.12,
-    transmission: 1,
-    thickness: 0.08,
-    ior: 1.5,
+    roughness: 0.05,
+    opacity: 0.2,
     transparent: true,
     depthWrite: false,           // mirrors Unity's _ZWrite 0
     normalMap: loadTex('Glass_Normal.png'),
-    normalScale: new THREE.Vector2(0.15, 0.15),
+    normalScale: new THREE.Vector2(0.1, 0.1),
     aoMap: loadTex('Glass_AO.png'),
-    envMapIntensity: 1.2,
-    clearcoat: 0.3,
+    envMapIntensity: 1.5,
+    clearcoat: 1.0,
     clearcoatRoughness: 0.05,
     side: THREE.DoubleSide,
   });
