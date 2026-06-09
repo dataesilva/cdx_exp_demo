@@ -9,6 +9,9 @@ import { createPosters } from './Posters.js';
 import { createVideoScreen } from './VideoScreen.js';
 import { Timeline } from './Timeline.js';
 import { createTimelineUI } from './TimelineUI.js';
+import { createFloatingText } from './createFloatingText.js';
+// --- New import for Draco model ---
+import { createDracoModel } from './DracoModel.js';
 
 const container = document.getElementById('app');
 
@@ -69,6 +72,26 @@ const showroom = createShowroom(scene, { quality: 'high' });
 const coffeeTable = createCoffeeTable();
 coffeeTable.position.y = 0.12;
 scene.add(coffeeTable);
+
+// Load and add the Draco bunny model above the coffee table.
+// The coffee table's base is at y = 0.12. We'll place the bunny model
+// with its own base at y = 0.7 to ensure it sits above the table.
+(async () => {
+  try {
+    const dracoBunny = await createDracoModel();
+    dracoBunny.position.set(0, 0.7, 0); // Position above the coffee table
+    scene.add(dracoBunny);
+    console.log('Draco bunny loaded and added to scene.');
+  } catch (error) {
+    console.error('Failed to load Draco bunny model:', error);
+  }
+})();
+
+// Add floating text
+(async () => { // Wrap in async IIFE
+  const textMesh = await createFloatingText("Welcome to the\nAccuPath Experience", scene, new THREE.Vector3(-3, 2.5, -3), 0.3, 0.02);
+  // textMesh is already added to scene inside createFloatingText, so no need for scene.add(textMesh) here.
+})();
 
 // Wall posters (images from the Unity project's "Text Mat" folder), mounted on
 // the back wall behind the stage. The room is entered from the +Z side facing

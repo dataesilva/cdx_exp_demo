@@ -67,7 +67,7 @@ export function createPosters({ height = 1.8, gap = 0.6 } = {}) {
       frameMat
     );
     frame.castShadow = true;
-    frame.receiveShadow = true;
+    frame.receiveShadow = false; // true
     panel.add(frame);
 
     group.add(panel);

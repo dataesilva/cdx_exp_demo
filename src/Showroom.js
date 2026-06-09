@@ -37,9 +37,9 @@ export function createShowroom(scene, { quality = 'high' } = {}) {
   group.name = 'Showroom';
 
   // Dark studio air to match the darkened walls.
-  const BG = 0x2b2b2c;
+  const BG = 0x1a1a1a; // 0x2b2b2c
   scene.background = new THREE.Color(BG);
-  scene.fog = new THREE.FogExp2(BG, 0.012);
+  scene.fog = new THREE.FogExp2(BG, 0.1); // .012
 
   // --- Materials (maps are assigned by applyTextures, below) ----------------
   const floorMat = new THREE.MeshStandardMaterial({ color: 0x6f6f6f, roughness: 0.5, metalness: 0, envMapIntensity: 0.5 }); // color: 0x6f6f6f, roughness: 0.8, metalness: 0, envMapIntensity: 0.5 
@@ -115,10 +115,10 @@ export function createShowroom(scene, { quality = 'high' } = {}) {
 
   // --- Soft, even studio lighting -------------------------------------------
   // Low hemisphere fill on top of the image-based ambient (set in main.js).
-  group.add(new THREE.HemisphereLight(0xe6e6e6, 0x6a6a68, 0.5));
+  group.add(new THREE.HemisphereLight(0xe6e6e6, 0x6a6a68, 0.1)); // .5
 
   // Overhead "softbox": a large area light just under the ceiling, aimed down.
-  const softbox = new THREE.RectAreaLight(0xfff4ec, 9, ROOM_SIZE * 0.6, ROOM_SIZE * 0.6);
+  const softbox = new THREE.RectAreaLight(0xfff4ec, 20, ROOM_SIZE * 0.6, ROOM_SIZE * 0.6); // intensity 9
   softbox.position.set(0, ROOM_HEIGHT - 0.05, 0);
   softbox.lookAt(0, 0, 0);
   group.add(softbox);
@@ -130,7 +130,7 @@ export function createShowroom(scene, { quality = 'high' } = {}) {
   group.add(fill);
 
   // Shadow-casting key light (RectAreaLights can't cast shadows in three.js).
-  const key = new THREE.DirectionalLight(0xfff4ec, 1.1);
+  const key = new THREE.DirectionalLight(0xfff4ec, 1.1); //1.1
   key.position.set(4, 8, 5);
   key.target.position.set(0, 1, 0);
   key.castShadow = true;

@@ -62,7 +62,7 @@ export function createVideoScreen(scene, src, {
   group.add(screen);
 
   // Bezel: a slim slab just behind the screen.
-  const border = 0.02;
+  const border = 0.02; // 0.06
   const bezel = new THREE.Mesh(
     new THREE.BoxGeometry(width + border * 2, height + border * 2, 0.06),
     bezelMat
