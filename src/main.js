@@ -3,12 +3,14 @@ import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { createFlatControls } from './Controls.js';
 import { createVRControllers } from './VRControllers.js';
+import { createVRTimeline } from './VRTimeline.js';
 import { createShowroom } from './Showroom.js';
 import { createCoffeeTable } from './CoffeeTable.js';
 import { createPosters } from './Posters.js';
 import { createVideoScreen } from './VideoScreen.js';
 import { Timeline } from './Timeline.js';
 import { createTimelineUI } from './TimelineUI.js';
+import { createPlacementTuner } from './PlacementTuner.js';
 import { createFloatingText } from './createFloatingText.js';
 // --- New import for Draco model ---
 import { createDracoModel } from './DracoModel.js';
@@ -117,7 +119,9 @@ const videoScreen = createVideoScreen(scene, './other-media/S08-CL8R24100YG-colo
 // runs an empty, scrubbable timeline so the transport works during development.
 const timeline = new Timeline({ scene });
 const timelineUI = createTimelineUI(timeline);
-timeline.load('./media/timeline.json');
+// Live dev panel to fine-tune the depthproj model rotation -> _placement.json.
+const placementTuner = createPlacementTuner(timeline);
+timeline.load('./media/timeline.json').then(() => placementTuner.applyAll());
 
 // --- Flat-screen controls + instructions window ---------------------------
 const instructions = document.getElementById('instructions');
@@ -145,6 +149,10 @@ const controls = createFlatControls({
 // so they share the headset's play-space frame. No-op until an XR session starts.
 const vrControllers = createVRControllers({ renderer, rig });
 
+// In-VR transport: a panel above the LEFT controller, operated by pointing the
+// RIGHT controller and pulling the trigger (play/pause, scrub, exit VR).
+const vrTimeline = createVRTimeline({ renderer, timeline, hands: vrControllers.hands });
+
 // In VR the headset owns the camera pose, so disable flat controls and hide
 // the screen overlay for the duration of the session.
 renderer.xr.addEventListener('sessionstart', () => {
@@ -154,12 +162,14 @@ renderer.xr.addEventListener('sessionstart', () => {
   instructions.classList.add('hidden');
   helpButton.classList.add('hidden');
   timelineUI.setVisible(false); // DOM overlay isn't visible in the headset
+  placementTuner.setVisible(false);
 });
 renderer.xr.addEventListener('sessionend', () => {
   camera.position.y = FLAT_EYE_HEIGHT;
   controls.setEnabled(true);
   helpButton.classList.remove('hidden');
   timelineUI.setVisible(true);
+  placementTuner.setVisible(true);
 });
 
 // --- Resize ---------------------------------------------------------------
@@ -202,6 +212,7 @@ renderer.setAnimationLoop(() => {
   const dt = clock.getDelta();
   controls.update(dt); // no-op while an XR session is active
   vrControllers.update(); // grab locomotion; no-op outside an XR session
+  vrTimeline.update(); // in-VR transport panel; no-op outside an XR session
 
   timeline.update(dt); // advance playhead, keep video + audio in sync
   timelineUI.update(); // reflect playhead on the transport bar

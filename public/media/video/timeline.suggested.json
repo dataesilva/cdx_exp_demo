@@ -1,0 +1,143 @@
+{
+  "duration": 529.4,
+  "loop": true,
+  "tracks": [
+    {
+      "type": "video",
+      "name": "Depthkit",
+      "clips": [
+        {
+          "src": "./media/video/01_preparation_s1",
+          "format": "depthproj",
+          "start": 0.0,
+          "duration": 33.133,
+          "name": "01_preparation_s1"
+        },
+        {
+          "src": "./media/video/02_sample-transfer_s1",
+          "format": "depthproj",
+          "start": 33.133,
+          "duration": 53.867,
+          "name": "02_sample-transfer_s1"
+        },
+        {
+          "src": "./media/video/03_capture-antibody_s1",
+          "format": "depthproj",
+          "start": 87.0,
+          "duration": 31.167,
+          "name": "03_capture-antibody_s1"
+        },
+        {
+          "src": "./media/video/04_capture-antibody_s2",
+          "format": "depthproj",
+          "start": 118.167,
+          "duration": 19.867,
+          "name": "04_capture-antibody_s2"
+        },
+        {
+          "src": "./media/video/05_pbs-wash_s1",
+          "format": "depthproj",
+          "start": 138.033,
+          "duration": 31.767,
+          "name": "05_pbs-wash_s1"
+        },
+        {
+          "src": "./media/video/06_pbs-wash_s2-1",
+          "format": "depthproj",
+          "start": 169.8,
+          "duration": 28.6,
+          "name": "06_pbs-wash_s2-1"
+        },
+        {
+          "src": "./media/video/07_pbs-wash_s2-2",
+          "format": "depthproj",
+          "start": 198.4,
+          "duration": 21.667,
+          "name": "07_pbs-wash_s2-2"
+        },
+        {
+          "src": "./media/video/08_pbs-wash_s3",
+          "format": "depthproj",
+          "start": 220.067,
+          "duration": 40.5,
+          "name": "08_pbs-wash_s3"
+        },
+        {
+          "src": "./media/video/09_pbs-wash_s5",
+          "format": "depthproj",
+          "start": 260.567,
+          "duration": 34.1,
+          "name": "09_pbs-wash_s5"
+        },
+        {
+          "src": "./media/video/10_enh-beads_s1",
+          "format": "depthproj",
+          "start": 294.667,
+          "duration": 31.833,
+          "name": "10_enh-beads_s1"
+        },
+        {
+          "src": "./media/video/11_enh-beads_s2",
+          "format": "depthproj",
+          "start": 326.5,
+          "duration": 19.0,
+          "name": "11_enh-beads_s2"
+        },
+        {
+          "src": "./media/video/12_liquid-crystal_s1",
+          "format": "depthproj",
+          "start": 345.5,
+          "duration": 28.633,
+          "name": "12_liquid-crystal_s1"
+        },
+        {
+          "src": "./media/video/13_liquid-crystal_s3",
+          "format": "depthproj",
+          "start": 374.133,
+          "duration": 40.533,
+          "name": "13_liquid-crystal_s3"
+        },
+        {
+          "src": "./media/video/14_press-slides_s1",
+          "format": "depthproj",
+          "start": 414.667,
+          "duration": 31.933,
+          "name": "14_press-slides_s1"
+        },
+        {
+          "src": "./media/video/15_slides-to-reader_s1",
+          "format": "depthproj",
+          "start": 446.6,
+          "duration": 49.0,
+          "name": "15_slides-to-reader_s1"
+        },
+        {
+          "src": "./media/video/16_slides-to-reader_s2",
+          "format": "depthproj",
+          "start": 495.6,
+          "duration": 11.4,
+          "name": "16_slides-to-reader_s2"
+        },
+        {
+          "src": "./media/video/17_cont-pgf",
+          "format": "depthproj",
+          "start": 507.0,
+          "duration": 14.8,
+          "name": "17_cont-pgf"
+        },
+        {
+          "src": "./media/video/18_cont-twf",
+          "format": "depthproj",
+          "start": 521.8,
+          "duration": 7.6,
+          "name": "18_cont-twf"
+        }
+      ]
+    },
+    {
+      "type": "audio",
+      "name": "Audio",
+      "clips": []
+    }
+  ]
+}

@@ -42,11 +42,10 @@ export class Timeline {
         `[Timeline] No usable manifest at ${manifestUrl} — running an empty timeline. ` +
           `Add clips in public/media/timeline.json. (${err.message})`
       );
-      data = { duration: 60, loop: true, tracks: [] };
+      data = { loop: true, tracks: [] };
     }
 
     this.loop = data.loop ?? this.loop;
-    this.duration = data.duration ?? 0;
 
     for (const track of data.tracks ?? []) {
       for (const clip of track.clips ?? []) {
@@ -54,10 +53,13 @@ export class Timeline {
       }
     }
 
-    if (!this.duration) {
-      this.duration =
-        this.clips.reduce((m, c) => Math.max(m, c.start + (c.duration || 0)), 0) || 60;
-    }
+    // Timeline length matches the clips: the end of the last clip (max start +
+    // duration). A manifest-provided `duration` is only used when there are no
+    // clips, then a default keeps an empty timeline scrubbable. Clips whose
+    // duration is read async (no explicit value) grow this in _addClip's
+    // loadedmetadata handler.
+    const clipsEnd = this.clips.reduce((m, c) => Math.max(m, c.start + (c.duration || 0)), 0);
+    this.duration = clipsEnd || data.duration || 60;
 
     this.ready = true;
     this._syncClips();
@@ -79,13 +81,18 @@ export class Timeline {
     };
 
     if (type === 'video') {
-      // Lazy import so an empty timeline never pulls Depthkit into startup.
-      const { createDepthkitPlayer } = await import('./DepthkitScene.js');
-      entry.player = createDepthkitPlayer(this.scene, clip.src, {
-        autoplay: false,
-        loop: false,
-        autoAdd: false,
-      });
+      // Pick the player by clip format. "depthproj" = volfuse single-sensor
+      // point cloud (DepthProjScene); anything else = Depthkit mesh sequence.
+      // Lazy import so an empty timeline never pulls a player into startup.
+      const format = clip.format ?? 'depthkit';
+      const playerOpts = { autoplay: false, loop: false, autoAdd: false };
+      if (format === 'depthproj') {
+        const { createDepthProjPlayer } = await import('./DepthProjScene.js');
+        entry.player = await createDepthProjPlayer(this.scene, clip.src, playerOpts);
+      } else {
+        const { createDepthkitPlayer } = await import('./DepthkitScene.js');
+        entry.player = createDepthkitPlayer(this.scene, clip.src, playerOpts);
+      }
       entry.media = entry.player.video;
     } else if (type === 'audio') {
       const audio = document.createElement('audio');

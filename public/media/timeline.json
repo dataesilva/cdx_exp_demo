@@ -5,7 +5,29 @@
     {
       "type": "video",
       "name": "Depthkit",
-      "clips": []
+      "clips": [
+        {
+          "src": "./media/video/01_preparation_s1",
+          "format": "depthproj",
+          "start": 0.0,
+          "duration": 33.133,
+          "name": "01_preparation_s1"
+        },
+        {
+          "src": "./media/video/02_sample-transfer_s1",
+          "format": "depthproj",
+          "start": 33.133,
+          "duration": 53.867,
+          "name": "02_sample-transfer_s1"
+        },
+        {
+          "src": "./media/video/03_capture-antibody_s1",
+          "format": "depthproj",
+          "start": 87.0,
+          "duration": 31.167,
+          "name": "03_capture-antibody_s1"
+        }
+      ]
     },
     {
       "type": "audio",

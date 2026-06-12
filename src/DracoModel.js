@@ -1,42 +1,36 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 
-// Path to the bunny.drc model within the public directory.
 const MODEL_PATH = './media/dracos/bunny.drc';
 
-/**
- * Creates and loads a Draco-compressed GLTF model (bunny.drc).
- * The model will be normalized so its base is at y=0 within its own group.
- *
- * @returns {Promise<THREE.Group>} A promise that resolves with the loaded model's Group.
- */
 export async function createDracoModel() {
   const dracoLoader = new DRACOLoader();
-  // Set the path to the Draco decoder. This can be a CDN or a local path
-  // if the draco decoders are bundled with the application (e.g., in public/draco/).
   dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
 
-  const gltfLoader = new GLTFLoader();
-  gltfLoader.setDRACOLoader(dracoLoader);
-
   return new Promise((resolve, reject) => {
-    gltfLoader.load(
+    dracoLoader.load(
       MODEL_PATH,
-      (gltf) => {
-        const model = gltf.scene;
-        model.name = 'DracoBunny';
+      (geometry) => {
+        geometry.computeVertexNormals();
 
-        // Calculate bounding box to adjust position so its base is at y=0
-        // within its own group, simplifying external positioning.
-        const box = new THREE.Box3().setFromObject(model);
-        const size = box.getSize(new THREE.Vector3());
-        const center = box.getCenter(new THREE.Vector3());
-        model.position.y -= (center.y - size.y / 2);
+        const material = new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.6, metalness: 0.1 });
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.name = 'DracoBunny';
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
 
-        resolve(model);
+        // Normalize so the base sits at y=0 within its parent, simplifying external positioning.
+        geometry.computeBoundingBox();
+        const box = geometry.boundingBox;
+        const center = new THREE.Vector3();
+        const size = new THREE.Vector3();
+        box.getCenter(center);
+        box.getSize(size);
+        mesh.position.y -= (center.y - size.y / 2);
+
+        resolve(mesh);
       },
-      undefined, // onProgress callback
+      undefined,
       (error) => {
         console.error('An error happened while loading the Draco model:', error);
         reject(error);

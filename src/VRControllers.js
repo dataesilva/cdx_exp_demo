@@ -33,7 +33,8 @@ import { XRControllerModelFactory } from 'three/examples/jsm/webxr/XRControllerM
  * @param {THREE.Group}         opts.rig       player rig (holds the XR camera)
  */
 export function createVRControllers({ renderer, rig }) {
-  const FLOOR_Y = 0; // rig floor; freeform climbing can't go below this
+  const FLOOR_Y = 0;      // rig floor; freeform climbing can't go below this
+  const GRAB_SPEED = 1.5; // multiplier on grab-locomotion translation
 
   const modelFactory = new XRControllerModelFactory();
 
@@ -128,7 +129,7 @@ export function createVRControllers({ renderer, rig }) {
       // by (previous hand position - current hand position).
       const h = active[0];
       h.grip.getWorldPosition(_a); // current world position
-      _t.copy(h.prevWorld).sub(_a); // how the world must move to "hold" the grab
+      _t.copy(h.prevWorld).sub(_a).multiplyScalar(GRAB_SPEED);
       rig.position.add(_t);
     } else if (active.length === 2) {
       // ---- two-hand: drag + yaw turn ----------------------------------------
@@ -146,7 +147,7 @@ export function createVRControllers({ renderer, rig }) {
       rig.position.sub(_midCur).applyQuaternion(_q).add(_midCur);
 
       // Translate so the (rotation-invariant) midpoint returns to where it was.
-      rig.position.add(_t.copy(_midPrev).sub(_midCur));
+      rig.position.add(_t.copy(_midPrev).sub(_midCur).multiplyScalar(GRAB_SPEED));
     }
 
     // Keep the player on or above the floor.
