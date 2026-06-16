@@ -58,9 +58,13 @@ export async function createDepthProjPlayer(scene, clipPath, opts = {}) {
   tex.colorSpace = THREE.SRGBColorSpace;
 
   // --- bounds (world-AABB cull) ------------------------------------------
+  // baseMin/baseMax are the immutable depthproj.json values; bMin/bMax are a
+  // separate clone fed to the uniform and live-mutated by setBoundsTrim.
   const b = meta.bounds && meta.bounds.min && meta.bounds.max ? meta.bounds : null;
-  const bMin = new THREE.Vector3(...(b ? b.min : [-1e9, -1e9, -1e9]));
-  const bMax = new THREE.Vector3(...(b ? b.max : [1e9, 1e9, 1e9]));
+  const baseMin = new THREE.Vector3(...(b ? b.min : [-1e9, -1e9, -1e9]));
+  const baseMax = new THREE.Vector3(...(b ? b.max : [1e9, 1e9, 1e9]));
+  const bMin = baseMin.clone();
+  const bMax = baseMax.clone();
 
   const uniforms = {
     uMap: { value: tex },
@@ -120,6 +124,17 @@ export async function createDepthProjPlayer(scene, clipPath, opts = {}) {
         THREE.MathUtils.degToRad(z),
       );
     },
+    /**
+     * Live-trim the world-AABB cull (camera-frame metres) — used by the bounds
+     * tuner. `trim.maxY` shrinks `bounds.max.y` by that amount, which crops
+     * points near the subject's feet/floor after the upright placement flip.
+     */
+    setBoundsTrim(trim = {}) {
+      const { maxY = 0, minY = 0 } = trim;
+      uniforms.uBoundsMax.value.y = baseMax.y - maxY;
+      uniforms.uBoundsMin.value.y = baseMin.y + minY;
+    },
+    getBaseBounds() { return { min: baseMin.clone(), max: baseMax.clone() }; },
   };
 }
 

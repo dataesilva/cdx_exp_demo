@@ -10,7 +10,7 @@ import { createPosters } from './Posters.js';
 import { createVideoScreen } from './VideoScreen.js';
 import { Timeline } from './Timeline.js';
 import { createTimelineUI } from './TimelineUI.js';
-import { createPlacementTuner } from './PlacementTuner.js';
+import { createBoundsTuner } from './BoundsTuner.js';
 import { createFloatingText } from './createFloatingText.js';
 // --- New import for Draco model ---
 import { createDracoModel } from './DracoModel.js';
@@ -121,13 +121,15 @@ const videoScreen = createVideoScreen(scene, './other-media/S08-CL8R24100YG-colo
 // runs an empty, scrubbable timeline so the transport works during development.
 const timeline = new Timeline({ scene });
 const timelineUI = createTimelineUI(timeline);
-// Live dev panel to fine-tune the depthproj model rotation -> _placement.json.
-const placementTuner = createPlacementTuner(timeline);
-timeline.load('./media/timeline.json').then(() => placementTuner.applyAll());
+// Temporary dev panel to trim the depthproj bounds cull (crops floor/ground
+// artifacts below the subject) -> bake the value into each clip's
+// depthproj.json bounds.max/min once it looks right. Remove when done tuning.
+const boundsTuner = createBoundsTuner(timeline);
+timeline.load('./media/timeline.json').then(() => boundsTuner.applyAll());
 
 // Hide standard UI elements initially
 timelineUI.setVisible(false);
-placementTuner.setVisible(false);
+boundsTuner.setVisible(false);
 
 // --- Flat-screen controls + instructions window ---------------------------
 const instructions = document.getElementById('instructions');
@@ -168,33 +170,39 @@ renderer.xr.addEventListener('sessionstart', () => {
   instructions.classList.add('hidden');
   helpButton.classList.add('hidden');
   timelineUI.setVisible(false); // DOM overlay isn't visible in the headset
-  placementTuner.setVisible(false);
 });
 renderer.xr.addEventListener('sessionend', () => {
   camera.position.y = FLAT_EYE_HEIGHT;
   controls.setEnabled(true);
   helpButton.classList.remove('hidden');
   timelineUI.setVisible(true);
-  placementTuner.setVisible(true);
 });
 
 // --- Welcome Screen Logic --------------------------------------------------
+// Toggled off during development; see WELCOME_SCREEN_TOGGLE.md to re-enable.
+const SHOW_WELCOME_SCREEN = false;
+
 const startBtn = document.getElementById('start-btn');
 const welcomeScreen = document.getElementById('welcome-screen');
 
-startBtn.addEventListener('click', () => {
+function enterExperience() {
   welcomeScreen.classList.add('hidden');
   document.body.classList.add('started');
   // Show active overlays
   helpButton.classList.remove('hidden');
   timelineUI.setVisible(true);
-  placementTuner.setVisible(true);
   instructions.classList.remove('hidden');
-  
+
   // Trigger media playback
   videoScreen.play();
   timeline.play();
-});
+}
+
+if (SHOW_WELCOME_SCREEN) {
+  startBtn.addEventListener('click', enterExperience);
+} else {
+  enterExperience();
+}
 
 // --- Resize ---------------------------------------------------------------
 window.addEventListener('resize', () => {

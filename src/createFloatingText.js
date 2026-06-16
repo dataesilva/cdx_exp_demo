@@ -36,7 +36,7 @@ export async function createFloatingText(textContent, scene, position, size = 1.
     });
     textGeometry.center(); // Center the text geometry
 
-    const textMaterial = new THREE.MeshBasicnMaterial({ color: 0x73ed2d }); // White color 0xffffff
+    const textMaterial = new THREE.MeshBasicMaterial({ color: 0x73ed2d }); // White color 0xffffff
     // const textMaterial = new THREE.MeshStandardMaterial({ color: 0x73ed2d });
     const textMesh = new THREE.Mesh(textGeometry, textMaterial);
 
