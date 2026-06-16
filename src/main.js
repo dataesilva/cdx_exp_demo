@@ -78,16 +78,16 @@ scene.add(coffeeTable);
 // Load and add the Draco bunny model above the coffee table.
 // The coffee table's base is at y = 0.12. We'll place the bunny model
 // with its own base at y = 0.7 to ensure it sits above the table.
-(async () => {
-  try {
-    const dracoBunny = await createDracoModel();
-    dracoBunny.position.set(0, 0.7, 0); // Position above the coffee table
-    scene.add(dracoBunny);
-    console.log('Draco bunny loaded and added to scene.');
-  } catch (error) {
-    console.error('Failed to load Draco bunny model:', error);
-  }
-})();
+// (async () => {
+//   try {
+//     const dracoBunny = await createDracoModel();
+//     dracoBunny.position.set(0, 0.7, 0); // Position above the coffee table
+//     scene.add(dracoBunny);
+//     console.log('Draco bunny loaded and added to scene.');
+//   } catch (error) {
+//     console.error('Failed to load Draco bunny model:', error);
+//   }
+// })();
 
 // Add floating text
 (async () => { // Wrap in async IIFE

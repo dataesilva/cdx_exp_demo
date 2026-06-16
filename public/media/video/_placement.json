@@ -1,6 +1,6 @@
 {
   "_note": "Shared transform applied to every depthproj clip so the point cloud is upright and on the stage. The depthproj world frame is the reference sensor's CAMERA frame (x right, y DOWN, z forward toward the subject), so a 180-degree rotation about X stands it up and faces it toward the viewer. The rig is fixed, so one transform serves all clips. TUNE position/scale by eye in `npm run dev`; rotationEuler is in degrees.",
-  "rotationEuler": [0, -166, -1.2],
-  "position": [0.5, 1.8, 2.5],
+  "rotationEuler": [-2, -161, 0],
+  "position": [0.65, 1.8, 2.3],
   "scale": 1.5
 }
