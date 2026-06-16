@@ -236,12 +236,149 @@
         background: rgba(255, 255, 255, 0.35);
         transform: translate(-50%, -50%);
       }
+      /* --- welcome screen ------------------------------------------------ */
+      #welcome-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(circle at center, rgba(20, 23, 28, 0.96) 0%, rgba(10, 11, 14, 0.99) 100%);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.6s;
+        overflow-y: auto;
+        padding: 24px;
+      }
+      #welcome-screen.hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+      .welcome-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 24px;
+        padding: 40px;
+        max-width: 580px;
+        width: 100%;
+        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+        animation: card-appear 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+      @keyframes card-appear {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .welcome-logo {
+        max-height: 110px;
+        width: auto;
+        object-fit: contain;
+        filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.1));
+      }
+      .welcome-title {
+        font-size: 26px;
+        font-weight: 700;
+        margin: 0;
+        background: linear-gradient(135deg, #ffffff 30%, #a5b4fc 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: -0.01em;
+      }
+      .welcome-description {
+        font-size: 15px;
+        line-height: 1.6;
+        color: #b4bcc6;
+        margin: 0;
+      }
+      .welcome-section {
+        width: 100%;
+        text-align: left;
+        background: rgba(255, 255, 255, 0.01);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 14px;
+        padding: 20px;
+        box-sizing: border-box;
+      }
+      .welcome-section h2 {
+        font-size: 13px;
+        font-weight: 600;
+        margin: 0 0 12px 0;
+        color: #818cf8;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .control-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .control-list li {
+        font-size: 14px;
+        line-height: 1.5;
+        color: #c8ced6;
+        position: relative;
+        padding-left: 14px;
+      }
+      .control-list li::before {
+        content: "•";
+        position: absolute;
+        left: 0;
+        color: #4f46e5;
+      }
+      .control-list li strong {
+        color: #ffffff;
+      }
+      .welcome-start-btn {
+        background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+        border: none;
+        border-radius: 14px;
+        color: white;
+        font-size: 16px;
+        font-weight: 600;
+        padding: 18px 36px;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
+        box-shadow: 0 8px 20px rgba(59, 130, 246, 0.25);
+        width: 100%;
+        max-width: 280px;
+        letter-spacing: 0.01em;
+      }
+      .welcome-start-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(59, 130, 246, 0.35);
+        filter: brightness(1.15);
+      }
+      .welcome-start-btn:active {
+        transform: translateY(1px);
+        box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2);
+      }
+      #xr-button {
+        display: none !important;
+      }
+      body.started #xr-button {
+        display: block !important;
+      }
     </style>
   </head>
   <body>
     <div id="app"></div>
 
-    <div id="instructions">
+    <div id="instructions" class="hidden">
       <button id="instructions-close" aria-label="Hide instructions">×</button>
       <h1>Move around</h1>
       <ul>
@@ -257,15 +394,45 @@
       </p>
     </div>
 
-    <button id="help-button" aria-label="Show movement instructions" title="Movement help">?</button>
+    <button id="help-button" class="hidden" aria-label="Show movement instructions" title="Movement help">?</button>
 
-    <div id="transport">
+    <div id="transport" class="hidden">
       <button id="tl-play" aria-label="Play">▶</button>
       <div id="tl-scrub" role="slider" aria-label="Scrub timeline">
         <div id="tl-fill"></div>
         <div id="tl-handle"></div>
       </div>
       <span id="tl-time">0:00 / 0:00</span>
+    </div>
+
+    <div id="welcome-screen">
+      <div class="welcome-card">
+        <img src="./textures/posters/AccuPath.png" alt="AccuPath Logo" class="welcome-logo" />
+        <h1 class="welcome-title">Welcome to AccuPath</h1>
+        
+        <div class="welcome-description">
+          The AccuPath Experience introducing LaunchPad by Crystal Diagnostics and Kent State University
+        </div>
+
+        <div class="welcome-section">
+          <h2>VR Controls (Meta Quest)</h2>
+          <ul class="control-list">
+            <li><strong>Movement:</strong> Hold the <strong>Grip</strong> button on either controller and drag the air to pull yourself through space.</li>
+            <li><strong>Rotation:</strong> Hold <strong>both Grip</strong> buttons simultaneously and twist/rotate your hands to rotate or reposition the virtual space.</li>
+            <li><strong>Timeline Transport:</strong> Point your right controller and squeeze the <strong>Trigger</strong> on the floating timeline panel located above your left hand to play/pause or scrub through timestamps.</li>
+          </ul>
+        </div>
+
+        <div class="welcome-section">
+          <h2>Desktop & Mobile Controls</h2>
+          <ul class="control-list">
+            <li><strong>Keyboard:</strong> Use <span class="keys">W</span> <span class="keys">A</span> <span class="keys">S</span> <span class="keys">D</span> or arrow keys to walk. Hold <span class="keys">Shift</span> to sprint.</li>
+            <li><strong>Mouse/Touch:</strong> Click and drag to look around. On mobile, use the virtual touch-joystick on the left side to move.</li>
+          </ul>
+        </div>
+
+        <button id="start-btn" class="welcome-start-btn">Start Experience</button>
+      </div>
     </div>
 
     <script type="module" src="/src/main.js"></script>

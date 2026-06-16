@@ -32,7 +32,9 @@ renderer.xr.enabled = true; // enable WebXR
 container.appendChild(renderer.domElement);
 
 // "ENTER VR" button — appears once a Quest/WebXR device is detected.
-document.body.appendChild(VRButton.createButton(renderer));
+const vrButton = VRButton.createButton(renderer);
+vrButton.id = 'xr-button';
+document.body.appendChild(vrButton);
 
 // --- Scene ----------------------------------------------------------------
 // Background + fog are configured by the Showroom to match its palette.
@@ -123,6 +125,10 @@ const timelineUI = createTimelineUI(timeline);
 const placementTuner = createPlacementTuner(timeline);
 timeline.load('./media/timeline.json').then(() => placementTuner.applyAll());
 
+// Hide standard UI elements initially
+timelineUI.setVisible(false);
+placementTuner.setVisible(false);
+
 // --- Flat-screen controls + instructions window ---------------------------
 const instructions = document.getElementById('instructions');
 const helpButton = document.getElementById('help-button');
@@ -170,6 +176,24 @@ renderer.xr.addEventListener('sessionend', () => {
   helpButton.classList.remove('hidden');
   timelineUI.setVisible(true);
   placementTuner.setVisible(true);
+});
+
+// --- Welcome Screen Logic --------------------------------------------------
+const startBtn = document.getElementById('start-btn');
+const welcomeScreen = document.getElementById('welcome-screen');
+
+startBtn.addEventListener('click', () => {
+  welcomeScreen.classList.add('hidden');
+  document.body.classList.add('started');
+  // Show active overlays
+  helpButton.classList.remove('hidden');
+  timelineUI.setVisible(true);
+  placementTuner.setVisible(true);
+  instructions.classList.remove('hidden');
+  
+  // Trigger media playback
+  videoScreen.play();
+  timeline.play();
 });
 
 // --- Resize ---------------------------------------------------------------
