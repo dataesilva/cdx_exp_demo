@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
     <title>CD3 — Depthkit Volumetric (WebXR)</title>
     <style>
@@ -130,13 +130,63 @@
         display: none;
       }
 
-      /* --- timeline transport ------------------------------------------- */
-      #transport {
+      /* --- exit-to-welcome button --------------------------------------- */
+      #exit-button {
         position: fixed;
         bottom: 18px;
-        left: 78px; /* clear the bottom-left help button */
         right: 16px;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 100, 100, 0.35);
+        background: rgba(20, 23, 28, 0.82);
+        backdrop-filter: blur(6px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        color: rgba(255, 120, 120, 0.9);
+        font-size: 22px;
+        font-weight: 400;
+        cursor: pointer;
         z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s ease, transform 0.1s ease;
+      }
+      #exit-button:hover {
+        background: rgba(80, 20, 20, 0.82);
+        color: #ff8888;
+      }
+      #exit-button:active {
+        transform: scale(0.94);
+      }
+      #exit-button.hidden {
+        display: none;
+      }
+
+      /* --- timeline transport ------------------------------------------- */
+      #transport-group {
+        position: fixed;
+        bottom: 18px;
+        left: 78px;  /* clear the bottom-left help button */
+        right: 74px; /* clear the bottom-right exit button */
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+      }
+      #transport-group.hidden {
+        display: none;
+      }
+      #transport-label {
+        text-align: center;
+        font-size: 14px;
+        letter-spacing: 0.04em;
+        color: rgba(20, 23, 28, 0.82);
+        pointer-events: none;
+        margin: 0;
+      }
+      #transport {
         display: flex;
         align-items: center;
         gap: 12px;
@@ -146,9 +196,6 @@
         border-radius: 12px;
         backdrop-filter: blur(6px);
         box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
-      }
-      #transport.hidden {
-        display: none;
       }
       #tl-play {
         flex: 0 0 auto;
@@ -241,15 +288,19 @@
         position: fixed;
         inset: 0;
         z-index: 100;
+        /* Column layout so overflow scrolls from the top instead of spilling
+           upward behind the browser chrome (which is unreachable). */
         display: flex;
+        flex-direction: column;
         align-items: center;
-        justify-content: center;
         background: radial-gradient(circle at center, rgba(20, 23, 28, 0.96) 0%, rgba(10, 11, 14, 0.99) 100%);
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
         transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.6s;
         overflow-y: auto;
-        padding: 24px;
+        /* Respects hardware notch + browser chrome; falls back to 24px. */
+        padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom)) 16px;
+        box-sizing: border-box;
       }
       #welcome-screen.hidden {
         opacity: 0;
@@ -260,7 +311,7 @@
         background: rgba(255, 255, 255, 0.02);
         border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 24px;
-        padding: 40px;
+        padding: clamp(20px, 5vw, 40px);
         max-width: 580px;
         width: 100%;
         box-shadow: 0 24px 64px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.1);
@@ -268,8 +319,13 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 24px;
+        gap: clamp(16px, 3vh, 24px);
         animation: card-appear 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        /* Auto margins center the card vertically when the viewport has room;
+           when the card is taller than the viewport it starts at the top
+           and the user scrolls down — no content hidden behind chrome. */
+        margin: auto;
+        flex-shrink: 0;
       }
       @keyframes card-appear {
         from {
@@ -367,6 +423,11 @@
         transform: translateY(1px);
         box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2);
       }
+      @media (max-height: 620px) {
+        .welcome-logo { max-height: 70px; }
+        .welcome-title { font-size: 20px; }
+        .welcome-section { padding: 14px; }
+      }
       #xr-button {
         display: none !important;
       }
@@ -395,23 +456,27 @@
     </div>
 
     <button id="help-button" class="hidden" aria-label="Show movement instructions" title="Movement help">?</button>
+    <button id="exit-button" class="hidden" aria-label="Return to welcome screen" title="Exit experience">✕</button>
 
-    <div id="transport" class="hidden">
-      <button id="tl-play" aria-label="Play">▶</button>
-      <div id="tl-scrub" role="slider" aria-label="Scrub timeline">
-        <div id="tl-fill"></div>
-        <div id="tl-handle"></div>
+    <div id="transport-group" class="hidden">
+      <p id="transport-label">Play the AccuPath Experience</p>
+      <div id="transport">
+        <button id="tl-play" aria-label="Play">▶</button>
+        <div id="tl-scrub" role="slider" aria-label="Scrub timeline">
+          <div id="tl-fill"></div>
+          <div id="tl-handle"></div>
+        </div>
+        <span id="tl-time">0:00 / 0:00</span>
       </div>
-      <span id="tl-time">0:00 / 0:00</span>
     </div>
 
     <div id="welcome-screen">
       <div class="welcome-card">
         <img src="./textures/posters/AccuPath.png" alt="AccuPath Logo" class="welcome-logo" />
-        <h1 class="welcome-title">Welcome to AccuPath</h1>
+        <h1 class="welcome-title">Welcome to the AccuPath Experience</h1>
         
         <div class="welcome-description">
-          The AccuPath Experience introducing LaunchPad by Crystal Diagnostics and Kent State University
+          By Crystal Diagnostics and<br>Kent State University's<br>School of Emerging Media and Technology
         </div>
 
         <div class="welcome-section">

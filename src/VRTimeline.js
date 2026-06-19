@@ -35,6 +35,28 @@ export function createVRTimeline({ renderer, timeline, hands }) {
   mat.toneMapped = false;
   const panel = new THREE.Mesh(new THREE.PlaneGeometry(0.20, 0.05), mat);
   panel.name = 'vr-timeline';
+
+  // --- label above the panel -----------------------------------------------
+  const labelCanvas = document.createElement('canvas');
+  labelCanvas.width = 512; labelCanvas.height = 64;
+  const labelCtx = labelCanvas.getContext('2d');
+  const labelTex = new THREE.CanvasTexture(labelCanvas);
+  labelTex.colorSpace = THREE.SRGBColorSpace;
+  const labelMat = new THREE.MeshBasicMaterial({ map: labelTex, transparent: true, side: THREE.DoubleSide });
+  labelMat.toneMapped = false;
+  // Same width as the panel; height is half (0.025 m for a 512×64 canvas at the same dpi).
+  const labelMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.20, 0.025), labelMat);
+  // Position just above the panel: panel top edge (0.025) + gap (0.004) + half label height (0.0125).
+  labelMesh.position.set(0, 0.0415, 0);
+  panel.add(labelMesh); // moves with the panel automatically
+
+  labelCtx.clearRect(0, 0, 512, 64);
+  labelCtx.fillStyle = 'rgba(230, 230, 230, 0.80)';
+  labelCtx.font = 'bold 26px system-ui, sans-serif';
+  labelCtx.textAlign = 'center';
+  labelCtx.textBaseline = 'middle';
+  labelCtx.fillText('Play the AccuPath Experience', 256, 32);
+  labelTex.needsUpdate = true;
   panel.visible = false;
   // Anchor pose in the left grip's local space: out the FRONT of the controller
   // (-Z is where it points), tilted up so it reads when you glance at it. Tune

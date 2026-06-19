@@ -9,23 +9,72 @@
         {
           "src": "./media/video/01_preparation_s1",
           "format": "depthproj",
-          "start": 0.0,
-          "duration": 33.133,
+          "start": 29.28,
+          "duration": 33.10,
           "name": "01_preparation_s1"
         },
         {
           "src": "./media/video/02_sample-transfer_s1",
           "format": "depthproj",
-          "start": 33.133,
-          "duration": 53.867,
+          "start": 62.38,
+          "duration": 27.25,
           "name": "02_sample-transfer_s1"
         },
         {
-          "src": "./media/video/03_capture-antibody_s1",
+          "src": "./media/video/02_sample-transfer_s1",
           "format": "depthproj",
-          "start": 87.0,
-          "duration": 31.167,
-          "name": "03_capture-antibody_s1"
+          "start": 89.63,
+          "duration": 10.02,
+          "name": "02_sample-transfer_s1"
+        },
+        {
+          "src": "./media/video/10_enh-beads_s1",
+          "format": "depthproj",
+          "start": 99.65,
+          "duration": 31.28,
+          "name": "10_enh-beads_s1"
+        },
+        {
+          "src": "./media/video/11_enh-beads_s2",
+          "format": "depthproj",
+          "start": 130.93,
+          "duration": 19.06,
+          "name": "11_enh-beads_s2"
+        },
+        {
+          "src": "./media/video/05_pbs-wash_s1",
+          "format": "depthproj",
+          "start": 149.99,
+          "duration": 31.18,
+          "name": "05_pbs-wash_s1"
+        },
+        {
+          "src": "./media/video/06_pbs-wash_s2-1",
+          "format": "depthproj",
+          "start": 181.17,
+          "duration": 25.13,
+          "name": "06_pbs-wash_s2-1"
+        },
+        {
+          "src": "./media/video/07_pbs-wash_s2-2",
+          "format": "depthproj",
+          "start": 206.3,
+          "duration": 9.18,
+          "name": "07_pbs-wash_s2-2"
+        },
+        {
+          "src": "./media/video/09_pbs-wash_s5",
+          "format": "depthproj",
+          "start": 215.48,
+          "duration": 34.09,
+          "name": "09_pbs-wash_s5"
+        },
+        {
+          "src": "./media/video/12_liquid-crystal_s1",
+          "format": "depthproj",
+          "start": 249.57,
+          "duration": 28.24,
+          "name": "012_liquid-crystal_s1"
         }
       ]
     },

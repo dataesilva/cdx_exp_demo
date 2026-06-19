@@ -12,7 +12,7 @@
  * empty manifest just runs an empty (scrubbable) timeline.
  */
 
-const DRIFT_TOLERANCE = 0.18; // seconds of slip before we hard-correct media
+const DRIFT_TOLERANCE = 0.05; // seconds of slip before we hard-correct non-master media
 
 export class Timeline {
   /** @param {{ scene: import('three').Scene, loop?: boolean }} opts */
@@ -25,6 +25,7 @@ export class Timeline {
     this.time = 0; // playhead, seconds
     this.playing = false;
     this.ready = false;
+    this._master = null; // audio-bearing clip that drives this.time
   }
 
   /**
@@ -113,7 +114,39 @@ export class Timeline {
       });
     }
 
+    if (!this._master && entry.type === 'audio') {
+      this._master = entry; // audio track is fallback master if no external clip
+    }
     this.clips.push(entry);
+  }
+
+  /**
+   * Register an existing HTMLMediaElement (e.g. a VideoScreen's <video>) as a
+   * timeline clip so it is driven by the same play/pause/seek as other tracks.
+   * Call this before or after load(); the clip is activated on the next sync.
+   */
+  registerMedia(mediaElement, { start = 0, duration = 0 } = {}) {
+    const entry = {
+      type: 'external',
+      src: mediaElement.src,
+      start,
+      duration,
+      name: mediaElement.src,
+      media: mediaElement,
+      player: null,
+      active: false,
+    };
+    if (!duration) {
+      mediaElement.addEventListener('loadedmetadata', () => {
+        entry.duration = mediaElement.duration || 0;
+        this.duration = Math.max(this.duration, entry.start + entry.duration);
+      });
+    }
+    if (!this._master && entry.type === 'external') {
+      this._master = entry; // VideoScreen video is preferred master clock
+    }
+    this.clips.push(entry);
+    if (this.ready) this._syncClips();
   }
 
   // ---------------------------------------------------------------- transport
@@ -149,12 +182,32 @@ export class Timeline {
   // -------------------------------------------------------------- per frame
   update(dt) {
     if (this.playing) {
-      this.time += dt;
-      if (this.time >= this.duration) {
-        if (this.loop) this.time %= this.duration || 1;
-        else {
-          this.time = this.duration;
-          this.pause();
+      const m = this._master;
+      const masterRunning =
+        m != null && m.active && m.media != null &&
+        !m.media.paused && !m.media.ended;
+
+      if (masterRunning) {
+        // Derive canonical time from the hardware audio/video clock. The master
+        // element is never seeked during normal playback, so its decoder is
+        // never flushed — this eliminates audio pops caused by drift correction.
+        this.time = m.start + m.media.currentTime;
+        if (this.loop && m.media.ended) {
+          // Loop boundary: accept one seek of the master here.
+          this.time = 0;
+          this._seekMedia(m, 0);
+          m.media.play().catch(() => {});
+        }
+      } else {
+        // Fallback: wall-clock accumulation (master not yet playing or absent).
+        // Clamp dt to 100ms to prevent a large time jump after a dropped frame.
+        this.time += Math.min(dt, 0.1);
+        if (this.time >= this.duration) {
+          if (this.loop) this.time %= this.duration || 1;
+          else {
+            this.time = this.duration;
+            this.pause();
+          }
         }
       }
     }
@@ -184,7 +237,12 @@ export class Timeline {
         c.media?.pause?.();
         c.player?.remove();
       } else if (within && c.active && c.media) {
-        if (force || Math.abs(c.media.currentTime - local) > DRIFT_TOLERANCE) {
+        const isMaster = c === this._master;
+        // Master plays freely; only seek it on an explicit user seek (force=true).
+        if (force) {
+          this._seekMedia(c, local);
+          if (this.playing && isMaster) c.media.play().catch(() => {});
+        } else if (!isMaster && Math.abs(c.media.currentTime - local) > DRIFT_TOLERANCE) {
           this._seekMedia(c, local);
         }
       }

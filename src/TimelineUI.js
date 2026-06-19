@@ -7,7 +7,7 @@
  *   #transport  #tl-play  #tl-scrub ( #tl-fill  #tl-handle )  #tl-time
  */
 export function createTimelineUI(timeline) {
-  const root = document.getElementById('transport');
+  const root = document.getElementById('transport-group');
   const playBtn = document.getElementById('tl-play');
   const scrub = document.getElementById('tl-scrub');
   const fill = document.getElementById('tl-fill');

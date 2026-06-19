@@ -106,10 +106,9 @@ posters.position.set(0, 2.3, -(showroom.ROOM_SIZE / 2) + 0.06);
 scene.add(posters);
 
 // Video display to the LEFT of the stage (player enters at ~[0,1.6,3] facing
-// -Z, so -X is their left). It plays the clip on loop for now; the returned
-// handle exposes the <video> + play()/pause() so it can later be driven by the
-// Timeline instead. Positioned inside the room and turned to face the player.
-const videoScreen = createVideoScreen(scene, './other-media/S08-CL8R24100YG-color.mp4', {
+// -Z, so -X is their left). Driven by the Timeline — play/pause/seek and audio
+// are in sync with all other tracks via timeline.registerMedia() below.
+const videoScreen = createVideoScreen(scene, './other-media/full-cut_6-18-26.mp4', {
   width: 2.2,
   position: new THREE.Vector3(-5, 0, 0.5),
   faceTarget: new THREE.Vector3(0, FLAT_EYE_HEIGHT, 3),
@@ -120,6 +119,9 @@ const videoScreen = createVideoScreen(scene, './other-media/S08-CL8R24100YG-colo
 // for the schema and the file naming convention. With no clips listed yet this
 // runs an empty, scrubbable timeline so the transport works during development.
 const timeline = new Timeline({ scene });
+// Register the video screen so TimelineUI controls its play/pause/seek and
+// the audio stays in sync with the other tracks.
+timeline.registerMedia(videoScreen.video, { start: 0 });
 const timelineUI = createTimelineUI(timeline);
 // Temporary dev panel to trim the depthproj bounds cull (crops floor/ground
 // artifacts below the subject) -> bake the value into each clip's
@@ -134,6 +136,7 @@ boundsTuner.setVisible(false);
 // --- Flat-screen controls + instructions window ---------------------------
 const instructions = document.getElementById('instructions');
 const helpButton = document.getElementById('help-button');
+const exitButton = document.getElementById('exit-button');
 function hideInstructions() {
   instructions.classList.add('hidden');
 }
@@ -169,18 +172,18 @@ renderer.xr.addEventListener('sessionstart', () => {
   camera.rotation.set(0, 0, 0);
   instructions.classList.add('hidden');
   helpButton.classList.add('hidden');
+  exitButton.classList.add('hidden');
   timelineUI.setVisible(false); // DOM overlay isn't visible in the headset
 });
 renderer.xr.addEventListener('sessionend', () => {
   camera.position.y = FLAT_EYE_HEIGHT;
   controls.setEnabled(true);
-  helpButton.classList.remove('hidden');
-  timelineUI.setVisible(true);
+  exitExperience();
 });
 
 // --- Welcome Screen Logic --------------------------------------------------
 // Toggled off during development; see WELCOME_SCREEN_TOGGLE.md to re-enable.
-const SHOW_WELCOME_SCREEN = false;
+const SHOW_WELCOME_SCREEN = true;
 
 const startBtn = document.getElementById('start-btn');
 const welcomeScreen = document.getElementById('welcome-screen');
@@ -188,15 +191,24 @@ const welcomeScreen = document.getElementById('welcome-screen');
 function enterExperience() {
   welcomeScreen.classList.add('hidden');
   document.body.classList.add('started');
-  // Show active overlays
   helpButton.classList.remove('hidden');
+  exitButton.classList.remove('hidden');
   timelineUI.setVisible(true);
   instructions.classList.remove('hidden');
-
-  // Trigger media playback
-  videoScreen.play();
-  timeline.play();
+  // Timeline starts paused; the user presses play in the transport bar.
 }
+
+function exitExperience() {
+  timeline.pause();
+  welcomeScreen.classList.remove('hidden');
+  document.body.classList.remove('started');
+  timelineUI.setVisible(false);
+  helpButton.classList.add('hidden');
+  exitButton.classList.add('hidden');
+  instructions.classList.add('hidden');
+}
+
+exitButton.addEventListener('click', exitExperience);
 
 if (SHOW_WELCOME_SCREEN) {
   startBtn.addEventListener('click', enterExperience);
@@ -212,13 +224,20 @@ window.addEventListener('resize', () => {
 });
 
 // --- Adaptive quality -----------------------------------------------------
-// Sample the framerate over 2s windows (after a warm-up). If it stays under
-// target for two windows running, drop the showroom's texture detail a level.
+// Tracks FPS over 2s windows. Steps down quality in priority order:
+//   1. Showroom texture detail (3 levels)
+//   2. DepthProj render frequency (render 1-in-N frames)
 const FPS_TARGET = 50;
 let warmup = 4; // seconds to ignore while things settle
 let winTime = 0;
 let winFrames = 0;
 let lowWindows = 0;
+
+// DepthProj frame-skip tiers: render every 1st, 2nd, or 4th frame.
+const DEPTHPROJ_TIERS = [1, 2, 4];
+let depthProjTier = 0;
+let depthProjSkipN = 1;
+let depthProjFrameCount = 0;
 
 function trackPerformance(dt) {
   if (warmup > 0) {
@@ -232,9 +251,19 @@ function trackPerformance(dt) {
   winTime = 0;
   winFrames = 0;
   lowWindows = fps < FPS_TARGET ? lowWindows + 1 : 0;
-  if (lowWindows >= 2 && showroom.reduceDetail()) {
-    lowWindows = 0;
-    console.info(`[perf] ~${fps.toFixed(0)} fps < ${FPS_TARGET}; reduced detail to "${showroom.quality}".`);
+  if (lowWindows >= 2) {
+    let acted = false;
+    if (showroom.reduceDetail()) {
+      acted = true;
+      console.info(`[perf] ~${fps.toFixed(0)} fps — showroom → "${showroom.quality}"`);
+    }
+    if (!acted && depthProjTier < DEPTHPROJ_TIERS.length - 1) {
+      depthProjTier += 1;
+      depthProjSkipN = DEPTHPROJ_TIERS[depthProjTier];
+      acted = true;
+      console.info(`[perf] ~${fps.toFixed(0)} fps — DepthProj skip-N=${depthProjSkipN}`);
+    }
+    if (acted) lowWindows = 0;
   }
 }
 
@@ -248,6 +277,14 @@ renderer.setAnimationLoop(() => {
 
   timeline.update(dt); // advance playhead, keep video + audio in sync
   timelineUI.update(); // reflect playhead on the transport bar
+
+  // DepthProj visibility throttle: hide point-cloud meshes on skipped frames
+  // to free GPU budget for audio/video smoothness when performance is low.
+  depthProjFrameCount = (depthProjFrameCount + 1) % depthProjSkipN;
+  const showDepthProj = depthProjFrameCount === 0;
+  for (const c of timeline.clips) {
+    if (c.active && c.player?.isDepthProj) c.player.root.visible = showDepthProj;
+  }
 
   trackPerformance(dt);
   renderer.render(scene, camera);

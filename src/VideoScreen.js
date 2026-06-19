@@ -41,8 +41,8 @@ export function createVideoScreen(scene, src, {
   // --- Video element + texture ----------------------------------------------
   const video = document.createElement('video');
   video.src = src;
-  video.loop = true;
-  video.muted = true;            // required for autoplay without a user gesture
+  video.loop = false;            // Timeline controls looping
+  video.muted = false;           // audio plays; caller must trigger after user gesture
   video.playsInline = true;
   video.preload = 'auto';
   video.crossOrigin = 'anonymous';
@@ -97,15 +97,7 @@ export function createVideoScreen(scene, src, {
   const play = () => video.play().catch(() => {});
   const pause = () => video.pause();
 
-  play();
-  // If the browser blocked autoplay, kick it off on the first user interaction.
-  const resume = () => {
-    play();
-    window.removeEventListener('pointerdown', resume);
-    window.removeEventListener('keydown', resume);
-  };
-  window.addEventListener('pointerdown', resume);
-  window.addEventListener('keydown', resume);
+  // Playback is driven by the Timeline; do not autoplay here.
 
   const dispose = () => {
     pause();
@@ -114,8 +106,6 @@ export function createVideoScreen(scene, src, {
     texture.dispose();
     screenMat.dispose();
     bezelMat.dispose();
-    window.removeEventListener('pointerdown', resume);
-    window.removeEventListener('keydown', resume);
   };
 
   return { group, video, texture, play, pause, dispose };
