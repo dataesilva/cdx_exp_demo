@@ -32,7 +32,7 @@ export function createVideoScreen(scene, src, {
   faceTarget = new THREE.Vector3(0, 1.6, 3),
 } = {}) {
   const height = width / aspect;
-  const standHeight = 0.95;            // gap from floor to bottom of the screen
+  const standHeight = 0.7;             // gap from floor to bottom of the screen
   const screenCenterY = standHeight + height / 2;
 
   const group = new THREE.Group();
@@ -68,15 +68,15 @@ export function createVideoScreen(scene, src, {
     bezelMat
   );
   bezel.position.set(0, screenCenterY, 0);
-  bezel.castShadow = true;
-  bezel.receiveShadow = true;
+  bezel.castShadow = false;
+  bezel.receiveShadow = false;
   group.add(bezel);
 
   // Neck: from the base up to the bezel.
   const neck = new THREE.Mesh(new THREE.BoxGeometry(0.12, screenCenterY, 0.08), bezelMat);
   neck.position.set(0, screenCenterY / 2, -0.06);
-  neck.castShadow = true;
-  neck.receiveShadow = true;
+  neck.castShadow = false;
+  neck.receiveShadow = false;
   group.add(neck);
 
   // Base: a low disc on the floor.

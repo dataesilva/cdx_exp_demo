@@ -1,0 +1,12 @@
+{
+  "defaults": { "position": [3, 3, -3], "size": 0.3, "height": 0.02 },
+  "cues": [
+    { "text": "Meet AccuPath", "start": 0, "duration": 30.00 },
+    { "text": "Explore the\nAccuPath advantage", "start": 30.28, "duration": 30.0 },
+    { "text": "Preparation Steps", "start": 60.65, "duration": 180.00 },
+    { "text": "Detection Steps", "start": 240.5, "duration":  130.00},
+    { "text": "Results Step", "start": 371.00, "duration":  27.00},
+    { "text": "This is AccuPath", "start": 398.00, "duration":  10.00},
+    { "text": "Thank you!", "start": 408.00, "duration":  30.00}
+  ]
+}

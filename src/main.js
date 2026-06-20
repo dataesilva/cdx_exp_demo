@@ -11,7 +11,7 @@ import { createVideoScreen } from './VideoScreen.js';
 import { Timeline } from './Timeline.js';
 import { createTimelineUI } from './TimelineUI.js';
 import { createBoundsTuner } from './BoundsTuner.js';
-import { createFloatingText } from './createFloatingText.js';
+import { createTextCues } from './TextCues.js';
 // --- New import for Draco model ---
 import { createDracoModel } from './DracoModel.js';
 
@@ -29,6 +29,14 @@ renderer.toneMappingExposure = 1.05;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.xr.enabled = true; // enable WebXR
+// Trim per-eye pixel count to give the Quest GPU fill headroom (stereo is ~2x
+// the work of the flat-screen view). Must be set before the XR session starts.
+renderer.xr.setFramebufferScaleFactor(0.9);
+// Fixed Foveated Rendering: Three.js defaults to 1.0 (max), which renders the
+// outer band of each eye at low resolution and leaves a faint, flickering
+// rectangle at the edge of the lens. Drop it so the periphery stays sharp.
+// (0 = full-resolution periphery; raise toward 0.2–0.3 if VR fill rate suffers.)
+renderer.xr.setFoveation(0);
 container.appendChild(renderer.domElement);
 
 // "ENTER VR" button — appears once a Quest/WebXR device is detected.
@@ -91,26 +99,32 @@ scene.add(coffeeTable);
 //   }
 // })();
 
-// Add floating text
-(async () => { // Wrap in async IIFE
-  const textMesh = await createFloatingText("Welcome to the\nAccuPath Experience", scene, new THREE.Vector3(-3, 2.5, -3), 0.3, 0.02);
-  // textMesh is already added to scene inside createFloatingText, so no need for scene.add(textMesh) here.
-})();
+// Timeline-synced floating text. Cues (text + start + duration) are authored in
+// public/media/text-cues.json; createTextCues builds each cue's mesh once and
+// the render loop shows whichever cue's window contains the playhead, billboarding
+// it toward the player (Y-only so the text stays upright). Loads async; the
+// render loop no-ops until it resolves.
+let textCues = null;
+createTextCues(scene, './media/text-cues.json').then((tc) => {
+  textCues = tc;
+});
 
 // Wall posters (images from the Unity project's "Text Mat" folder), mounted on
-// the back wall behind the stage. The room is entered from the +Z side facing
-// -Z, so the -Z wall sits behind the centre stage; the panels face +Z into the
-// room. Held just off the wall surface to avoid z-fighting.
+// the RIGHT wall (the +X wall — the player enters at the +Z side facing -Z, so
+// +X is their right). The panels are built facing +Z, so we rotate the group
+// -90° about Y to face -X into the room. Held just off the wall surface to
+// avoid z-fighting.
 const posters = createPosters();
-posters.position.set(0, 2.3, -(showroom.ROOM_SIZE / 2) + 0.06);
+posters.position.set((showroom.ROOM_SIZE / 2) - 0.06, 2.3, 0);
+posters.rotation.y = -Math.PI / 2;
 scene.add(posters);
 
 // Video display to the LEFT of the stage (player enters at ~[0,1.6,3] facing
 // -Z, so -X is their left). Driven by the Timeline — play/pause/seek and audio
 // are in sync with all other tracks via timeline.registerMedia() below.
 const videoScreen = createVideoScreen(scene, './other-media/full-cut_6-18-26.mp4', {
-  width: 2.2,
-  position: new THREE.Vector3(-5, 0, 0.5),
+  width: 5.5,
+  position: new THREE.Vector3(-4, 0, -2),
   faceTarget: new THREE.Vector3(0, FLAT_EYE_HEIGHT, 3),
 });
 
@@ -174,10 +188,27 @@ renderer.xr.addEventListener('sessionstart', () => {
   helpButton.classList.add('hidden');
   exitButton.classList.add('hidden');
   timelineUI.setVisible(false); // DOM overlay isn't visible in the headset
+  // Stereo VR is far heavier, so free GPU budget from the *room* (not the
+  // subject): lighter shadows + simpler glass. The cloud stays at full density
+  // (and always visible — never hidden, which would strobe/flicker); the
+  // adaptive loop only thins it as a last resort.
+  shadowTier = 1; // 'low' baseline for VR
+  applyShadowTier();
+  coffeeTable.setGlassQuality('vr');
+  depthProjStep = 1;
+  applyDepthProjStep(depthProjStep);
+  lowWindows = 0;
 });
 renderer.xr.addEventListener('sessionend', () => {
   camera.position.y = FLAT_EYE_HEIGHT;
   controls.setEnabled(true);
+  // Restore the full-quality flat-screen look.
+  shadowTier = 0; // 'high'
+  applyShadowTier();
+  coffeeTable.setGlassQuality('full');
+  depthProjStep = 1;
+  applyDepthProjStep(depthProjStep);
+  lowWindows = 0;
   exitExperience();
 });
 
@@ -224,20 +255,41 @@ window.addEventListener('resize', () => {
 });
 
 // --- Adaptive quality -----------------------------------------------------
-// Tracks FPS over 2s windows. Steps down quality in priority order:
+// Tracks FPS over 2s windows. When the framerate stays below target, sheds GPU
+// load in priority order — the depthproj cloud (the subject) is the LAST thing
+// touched, so room dressing is sacrificed before model quality:
 //   1. Showroom texture detail (3 levels)
-//   2. DepthProj render frequency (render 1-in-N frames)
+//   2. Shadow profile (high → low → off)
+//   3. DepthProj point density (coarser grid step = fewer points), capped at 2
+// Density is reduced by drawing fewer points, NEVER by hiding the cloud:
+// toggling visibility every frame strobes/flickers badly in a headset.
 const FPS_TARGET = 50;
 let warmup = 4; // seconds to ignore while things settle
 let winTime = 0;
 let winFrames = 0;
 let lowWindows = 0;
 
-// DepthProj frame-skip tiers: render every 1st, 2nd, or 4th frame.
-const DEPTHPROJ_TIERS = [1, 2, 4];
-let depthProjTier = 0;
-let depthProjSkipN = 1;
-let depthProjFrameCount = 0;
+// Shadow ladder, driven one-way by the adaptive loop (and reset on VR enter/exit
+// below). VR starts one notch down ('low') since stereo soft-PCF is costly.
+const SHADOW_PROFILES = ['high', 'low', 'off'];
+let shadowTier = 0;
+function applyShadowTier() {
+  showroom.setShadowProfile(SHADOW_PROFILES[shadowTier]);
+}
+
+// DepthProj grid-step ladder. `depthProjStep` is the live subsample step: full
+// density (1) by default; the adaptive loop may raise it as a last resort, but
+// only to DEPTHPROJ_MAX_STEP — step 3+ thins the cloud too aggressively.
+const DEPTHPROJ_MAX_STEP = 2;
+let depthProjStep = 1;
+
+// Apply the current grid step to every depthproj clip (active or not, so a clip
+// activated later inherits the current density).
+function applyDepthProjStep(step) {
+  for (const c of timeline.clips) {
+    if (c.player?.isDepthProj) c.player.setGridStep(step);
+  }
+}
 
 function trackPerformance(dt) {
   if (warmup > 0) {
@@ -257,11 +309,17 @@ function trackPerformance(dt) {
       acted = true;
       console.info(`[perf] ~${fps.toFixed(0)} fps — showroom → "${showroom.quality}"`);
     }
-    if (!acted && depthProjTier < DEPTHPROJ_TIERS.length - 1) {
-      depthProjTier += 1;
-      depthProjSkipN = DEPTHPROJ_TIERS[depthProjTier];
+    if (!acted && shadowTier < SHADOW_PROFILES.length - 1) {
+      shadowTier += 1;
+      applyShadowTier();
       acted = true;
-      console.info(`[perf] ~${fps.toFixed(0)} fps — DepthProj skip-N=${depthProjSkipN}`);
+      console.info(`[perf] ~${fps.toFixed(0)} fps — shadows → "${SHADOW_PROFILES[shadowTier]}"`);
+    }
+    if (!acted && depthProjStep < DEPTHPROJ_MAX_STEP) {
+      depthProjStep += 1;
+      applyDepthProjStep(depthProjStep);
+      acted = true;
+      console.info(`[perf] ~${fps.toFixed(0)} fps — DepthProj grid step=${depthProjStep}`);
     }
     if (acted) lowWindows = 0;
   }
@@ -278,13 +336,9 @@ renderer.setAnimationLoop(() => {
   timeline.update(dt); // advance playhead, keep video + audio in sync
   timelineUI.update(); // reflect playhead on the transport bar
 
-  // DepthProj visibility throttle: hide point-cloud meshes on skipped frames
-  // to free GPU budget for audio/video smoothness when performance is low.
-  depthProjFrameCount = (depthProjFrameCount + 1) % depthProjSkipN;
-  const showDepthProj = depthProjFrameCount === 0;
-  for (const c of timeline.clips) {
-    if (c.active && c.player?.isDepthProj) c.player.root.visible = showDepthProj;
-  }
+  // Show the floating-text cue for the current playhead time and billboard it
+  // toward the player. No-op until the cue manifest finishes loading.
+  textCues?.update(timeline.time, camera);
 
   trackPerformance(dt);
   renderer.render(scene, camera);

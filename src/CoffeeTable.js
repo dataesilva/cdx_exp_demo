@@ -123,5 +123,20 @@ export function createCoffeeTable({ targetWidth = 2.5, onReady } = {}) {
     (err) => console.error('[CoffeeTable] failed to load FBX:', err)
   );
 
+  /**
+   * Swap the glass between its full look and a cheaper VR look. Toggling the
+   * shared `glassMat` affects the mesh whenever the async FBX finishes loading,
+   * so this is safe to call before or after load.
+   *   'full' — clearcoat + double-sided (desktop)
+   *   'vr'   — no clearcoat, single-sided (drops a specular lobe + back-face
+   *            overdraw to free GPU budget for the depthproj cloud)
+   */
+  group.setGlassQuality = (profile) => {
+    const vr = profile === 'vr';
+    glassMat.clearcoat = vr ? 0 : 1.0;
+    glassMat.side = vr ? THREE.FrontSide : THREE.DoubleSide;
+    glassMat.needsUpdate = true;
+  };
+
   return group;
 }

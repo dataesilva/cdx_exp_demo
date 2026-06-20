@@ -146,6 +146,27 @@ export function createShowroom(scene, { quality = 'high' } = {}) {
   group.add(key);
   group.add(key.target);
 
+  /**
+   * Adjust shadow cost without recreating anything. Used to free GPU budget for
+   * the depthproj cloud (notably in VR, where stereo doubles the per-fragment
+   * soft-PCF sampling cost):
+   *   'high' — 2048² / radius 4   (desktop default)
+   *   'low'  — 1024² / radius 2   (VR baseline; map realloc only, no recompile)
+   *   'off'  — no shadow at all   (deepest tier; one-time material recompile)
+   */
+  function setShadowProfile(level) {
+    if (level === 'off') {
+      key.castShadow = false;
+      return;
+    }
+    key.castShadow = true;
+    const high = level === 'high';
+    key.shadow.mapSize.set(high ? 2048 : 1024, high ? 2048 : 1024);
+    key.shadow.radius = high ? 4 : 2;
+    key.shadow.map?.dispose();
+    key.shadow.map = null; // force the renderer to realloc the depth map at the new size
+  }
+
   // Visible glowing ceiling panel coincident with the softbox.
   const panel = new THREE.Mesh(
     new THREE.PlaneGeometry(ROOM_SIZE * 0.5, ROOM_SIZE * 0.5),
@@ -162,6 +183,7 @@ export function createShowroom(scene, { quality = 'high' } = {}) {
     ROOM_SIZE,
     ROOM_HEIGHT,
     reduceDetail,
+    setShadowProfile,
     get quality() {
       return QUALITY_LEVELS[qIndex];
     },

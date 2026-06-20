@@ -86,6 +86,21 @@ export async function createDepthProjPlayer(scene, clipPath, opts = {}) {
   const points = new THREE.Points(geo, material);
   points.frustumCulled = false;
 
+  // Live point-density control: swap the grid geometry for a coarser/finer step
+  // without recreating the player. Used by adaptive quality and the VR baseline
+  // to shed GPU cost by drawing fewer points — never by hiding the cloud (which
+  // strobes/flickers in a headset). The shader samples by normalised grid coord,
+  // so any step renders correctly with no further changes.
+  let currentStep = Math.max(1, gridStep | 0);
+  function rebuildGrid(step) {
+    step = Math.max(1, step | 0);
+    if (step === currentStep) return;
+    const old = points.geometry;
+    points.geometry = makeGrid(meta.depth.width, meta.depth.height, step);
+    old.dispose();
+    currentStep = step;
+  }
+
   // --- placement group (upright / on stage; shared across clips) ----------
   const root = new THREE.Group();
   root.add(points);
@@ -135,6 +150,9 @@ export async function createDepthProjPlayer(scene, clipPath, opts = {}) {
       uniforms.uBoundsMin.value.y = baseMin.y + minY;
     },
     getBaseBounds() { return { min: baseMin.clone(), max: baseMax.clone() }; },
+    /** Rebuild the point grid at a new subsample step (>=1); fewer points = cheaper. */
+    setGridStep(step) { rebuildGrid(step); },
+    getGridStep() { return currentStep; },
   };
 }
 
@@ -175,6 +193,7 @@ function makeGrid(W, H, step) {
 // bottom half, colour from the top half, with silhouette/edge cull and a
 // world-space AABB bounds cull.
 const VERT = /* glsl */ `
+precision highp float;   // depth unprojection needs high precision on mobile GPUs
 uniform sampler2D uMap;
 uniform mat4 uDepthToWorld;
 uniform float uNear, uFar, uW, uH;
@@ -229,7 +248,7 @@ void main() {
   vValid = valid ? 1.0 : 0.0;
 
   if (!valid) {
-    gl_Position = vec4(0.0 / 0.0);
+    gl_Position = vec4(2.0, 2.0, 2.0, 1.0);  // x/w = 2 > 1 → reliably clipped on every GPU (avoids NaN, undefined on Adreno)
     gl_PointSize = 0.0;
     return;
   }
@@ -240,7 +259,7 @@ void main() {
   if (uBoundsCull > 0.5 &&
       (any(lessThan(world.xyz, uBoundsMin)) || any(greaterThan(world.xyz, uBoundsMax)))) {
     vValid = 0.0;
-    gl_Position = vec4(0.0 / 0.0);
+    gl_Position = vec4(2.0, 2.0, 2.0, 1.0);  // x/w = 2 > 1 → reliably clipped on every GPU (avoids NaN, undefined on Adreno)
     gl_PointSize = 0.0;
     return;
   }

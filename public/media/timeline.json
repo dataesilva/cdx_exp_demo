@@ -1,6 +1,6 @@
 {
   "duration": 60,
-  "loop": true,
+  "loop": false,
   "tracks": [
     {
       "type": "video",
@@ -74,7 +74,35 @@
           "format": "depthproj",
           "start": 249.57,
           "duration": 28.24,
-          "name": "012_liquid-crystal_s1"
+          "name": "12_liquid-crystal_s1"
+        },
+        {
+          "src": "./media/video/13_liquid-crystal_s3",
+          "format": "depthproj",
+          "start": 277.00,
+          "duration": 40.20,
+          "name": "13_liquid-crystal_s3"
+        },
+        {
+          "src": "./media/video/14_press-slides_s1",
+          "format": "depthproj",
+          "start": 318.19,
+          "duration": 32.01,
+          "name": "14_press-slides_s1"
+        },
+        {
+          "src": "./media/video/15_slides-to-reader_s1",
+          "format": "depthproj",
+          "start": 350.20,
+          "duration": 49.05,
+          "name": "15_slides-to-reader_s1"
+        },
+        {
+          "src": "./media/video/16_slides-to-reader_s2",
+          "format": "depthproj",
+          "start": 399.25,
+          "duration": 11.16,
+          "name": "16_slides-to-reader_s2"
         }
       ]
     },

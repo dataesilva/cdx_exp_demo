@@ -6,6 +6,7 @@ This folder holds the volumetric video and audio that the app plays, plus the
 ```
 public/media/
   timeline.json     <- the manifest (what plays, and when)
+  text-cues.json    <- timeline-synced floating text (what reads, and when)
   video/            <- Depthkit WebXR exports   (see video/README.md)
   audio/            <- audio files              (see audio/README.md)
 ```
@@ -68,3 +69,29 @@ Notes:
    each folder's README.
 2. Add a clip entry to the matching track in `timeline.json` with its `start`.
 3. Reload — it appears on the timeline and plays in sync.
+
+## Floating text — `text-cues.json`
+
+On-screen floating text is driven by the same playhead. Each cue is shown while
+the playhead is inside its `[start, start + duration)` window, so the copy
+changes as the timeline advances (the opening title is just the first cue).
+
+```jsonc
+{
+  // Optional shared defaults; any cue may override any of these.
+  "defaults": { "position": [3, 2.5, -3], "size": 0.3, "height": 0.02 },
+  "cues": [
+    { "text": "The AccuPath Experience", "start": 0,     "duration": 29.28 },
+    { "text": "Sample preparation",      "start": 29.28, "duration": 33.1  }
+    // A cue may add "position": [x, y, z] / "size": n to override the defaults.
+  ]
+}
+```
+
+Notes:
+- `text`, `start`, and `duration` (all seconds) are the per-cue fields.
+- Cues work like subtitles — keep their windows sequential. Two cues whose
+  windows overlap will both show; give them different `position` values so the
+  text doesn't collide.
+- To change the wording or timing, just edit this file and reload — no code
+  changes. An empty or missing file simply shows no text.
