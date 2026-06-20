@@ -20,5 +20,12 @@ export default defineConfig({
       ignored: ['**/public/**', '**/.stfolder/**'],
     },
   },
+  preview: {
+    // `npm run preview` serves the production build (dist/). host:true binds to
+    // 0.0.0.0 so the Quest 3 can reach https://<your-LAN-ip>:5173 over Wi-Fi,
+    // and pinning the port keeps that URL predictable (preview defaults to 4173).
+    host: true,
+    port: 5173,
+  },
   // Depthkit's .drc/.mp4 assets in public/ are served as-is.
 });

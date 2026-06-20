@@ -60,6 +60,12 @@ npm run build     # outputs to dist/
 npm run preview   # serve the production build over HTTPS
 ```
 
+## Deploying to another machine
+
+To move this onto a different Windows or macOS computer for someone else to run,
+see **[DEPLOY.md](DEPLOY.md)** — a non-technical, double-click walkthrough
+(`start.bat` / `start.command`).
+
 ## Notes
 
 - `three` is pinned to the `0.159.x` line to match `depthkit`'s dependency range, so npm
