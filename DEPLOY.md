@@ -1,6 +1,6 @@
-# Deploying CD3 on another machine
+# Deploying the AccuPath Experience on another machine
 
-CD3 runs as a small **web server on a computer**; the Meta Quest 3 opens it over
+AccuPathExp runs as a small **web server on a computer**; the Meta Quest 3 opens it over
 the **same Wi-Fi network**. There is no cloud/website to set up — you copy the
 project to the computer that will run it, then launch it with one double-click.
 
@@ -8,21 +8,15 @@ These steps work on both **Windows** and **macOS**.
 
 ---
 
-## Part A — Package it (done once, on the machine that has the project)
+## Part A — Download the package to a new device
 
-1. Make a **zip of the project folder**, but **leave out** these folders if they
-   exist (they are large and/or machine-specific and get rebuilt automatically):
-   - `node_modules/`
-   - `dist/`
-   - `.vite/`
-   - `.git/`
-   - `.stfolder/`
+1. AccuPathExp is provided as a **zip of the project folder** that includes the essential materials for the project
 
-   > Everything inside `public/` (the videos, audio, models, textures) **must
-   > stay in** — that's the content the app plays.
+   > Everything inside the zipped folder (the videos, audio, models, textures) **must
+   > stay in the provided structure** — as all elements are necessary for the app to play.
 
-2. Get that zip onto the new computer (USB drive, file share, cloud download —
-   whatever is easiest).
+2. Get the zip onto the new computer (USB drive, file share, cloud download —
+   whatever is easiest). The initial zip has been provided by emailed link to a OneDrive file.
 
 ---
 
@@ -67,15 +61,18 @@ These steps work on both **Windows** and **macOS**.
 
 ---
 
-## Part C — Open it on the Quest 3
+## Part C — Open the app on the Quest 3
 
 1. Make sure the **Quest 3 is on the same Wi-Fi network** as the computer.
 2. In the Quest's browser, type the **Network** URL from above
    (`https://192.168.x.x:5173`).
 3. You'll get a security warning because the server uses a self-signed
    certificate — this is expected. Tap **Advanced → Proceed**.
-4. Tap **ENTER VR**.
-
+4. Read the welcome and instructions, click "Start Experience" and then on the next page select **ENTER VR**.
+   > The narration sequence will begin when the **Play*** arrow is tapped.
+5. If the audience/user wishes to use a flat-screen device (laptop, table, or smartphone), simply read the instructions, click **Start the Experience** and click/tap the **Play** arrow to begin.
+6. The playback can be paused and scrubbed similar to any other video player.
+7. There is a large red X which will exit the experience and return the user to the welcome screen. 
 ---
 
 ## Troubleshooting

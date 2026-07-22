@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>DEPLOY.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> or <div class="page"></div> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="deploying-the-accupath-experience-on-another-machine">Deploying the AccuPath Experience on another machine</h1>
+<p>AccuPathExp runs as a small <strong>web server on a computer</strong>; the Meta Quest 3 opens it over
+the <strong>same Wi-Fi network</strong>. There is no cloud/website to set up — you copy the
+project to the computer that will run it, then launch it with one double-click.</p>
+<p>These steps work on both <strong>Windows</strong> and <strong>macOS</strong>.</p>
+<hr>
+<h2 id="part-a--download-the-package-to-a-new-device">Part A — Download the package to a new device</h2>
+<ol>
+<li>
+<p>AccuPathExp is provided as a <strong>zip of the project folder</strong> that includes the essential materials for the project</p>
+<blockquote>
+<p>Everything inside the zipped folder (the videos, audio, models, textures) <strong>must
+stay in the provided structure</strong> — as all elements are necessary for the app to play.</p>
+</blockquote>
+</li>
+<li>
+<p>Get the zip onto the new computer (USB drive, file share, cloud download —
+whatever is easiest). The initial zip has been provided by emailed link to a OneDrive file.</p>
+</li>
+</ol>
+<hr>
+<h2 id="part-b--set-up-the-new-computer">Part B — Set up the new computer</h2>
+<ol>
+<li>
+<p><strong>Install Node.js.</strong> Go to <a href="https://nodejs.org">https://nodejs.org</a>, download the <strong>LTS</strong>
+installer for the operating system, run it, and accept all the defaults.
+(Same step on Windows and macOS. You only do this once per computer.)</p>
+</li>
+<li>
+<p><strong>Unzip the project</strong> somewhere easy to find, like the Desktop. Avoid putting
+it inside a synced folder (Dropbox/OneDrive/Syncthing) or a system folder.</p>
+</li>
+<li>
+<p><strong>Launch it:</strong></p>
+<p><strong>Windows</strong></p>
+<ul>
+<li>Double-click <strong><code>start.bat</code></strong>.</li>
+<li>If a blue &quot;Windows protected your PC&quot; box appears: click <strong>More info →
+Run anyway</strong>.</li>
+<li>The first time the server starts, <strong>Windows Defender Firewall</strong> will ask for
+permission — click <strong>Allow access</strong> (otherwise the Quest can't connect).</li>
+</ul>
+<p><strong>macOS</strong></p>
+<ul>
+<li><strong>Right-click <code>start.command</code> → Open</strong>, then confirm <strong>Open</strong> in the dialog.
+(Right-click → Open is only needed the very first time; after that you can
+double-click.)</li>
+<li>If it refuses to run, open <strong>Terminal</strong>, drag the project folder in to get
+its path, and run once:<pre class="hljs"><code><div><span class="hljs-built_in">chmod</span> +x <span class="hljs-string">&quot;/path/to/start.command&quot;</span>
+</div></code></pre>
+then try again.</li>
+</ul>
+</li>
+<li>
+<p>A terminal/console window opens and shows:</p>
+<ul>
+<li><code>Installing dependencies...</code> (first run only, can take a few minutes)</li>
+<li><code>Building...</code></li>
+<li><code>Starting server.</code></li>
+</ul>
+<p>When it's running it prints a couple of URLs. Note the <strong>Network</strong> one — it
+looks like <strong><code>https://192.168.x.x:5173</code></strong>.</p>
+<blockquote>
+<p>Leave this window <strong>open</strong> — closing it stops the server.</p>
+</blockquote>
+</li>
+</ol>
+<hr>
+<h2 id="part-c--open-the-app-on-the-quest-3">Part C — Open the app on the Quest 3</h2>
+<ol>
+<li>Make sure the <strong>Quest 3 is on the same Wi-Fi network</strong> as the computer.</li>
+<li>In the Quest's browser, type the <strong>Network</strong> URL from above
+(<code>https://192.168.x.x:5173</code>).</li>
+<li>You'll get a security warning because the server uses a self-signed
+certificate — this is expected. Tap <strong>Advanced → Proceed</strong>.</li>
+<li>Read the welcome and instructions, click &quot;Start Experience&quot; and then on the next page select <strong>ENTER VR</strong>.
+<blockquote>
+<p>The narration sequence will begin when the <strong>Play</strong>* arrow is tapped.</p>
+</blockquote>
+</li>
+<li>If the audience/user wishes to use a flat-screen device (laptop, table, or smartphone), simply read the instructions, click <strong>Start the Experience</strong> and click/tap the <strong>Play</strong> arrow to begin.</li>
+<li>The playback can be paused and scrubbed similar to any other video player.</li>
+<li>There is a large red X which will exit the experience and return the user to the welcome screen.</li>
+</ol>
+<hr>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<ul>
+<li><strong>Quest can't load the page / &quot;can't connect&quot;:</strong>
+<ul>
+<li>Confirm both devices are on the <strong>same Wi-Fi</strong> (not a guest network).</li>
+<li>Windows: re-check that you clicked <strong>Allow access</strong> on the firewall prompt.
+(You can re-trigger it by closing the window and running <code>start.bat</code> again.)</li>
+</ul>
+</li>
+<li><strong>Security/certificate warning in the browser:</strong> expected — tap <strong>Advanced →
+Proceed</strong> (Quest) or <strong>Advanced → proceed</strong> (desktop). It only nags the first
+time per device.</li>
+<li><strong>To stop the server:</strong> close the terminal/console window.</li>
+<li><strong>Re-running is safe:</strong> double-clicking the launcher again just rebuilds and
+restarts. Dependencies only reinstall if something changed.</li>
+<li><strong>Quick desktop check (optional):</strong> on the computer itself, open
+<code>https://localhost:5173</code> in a browser — you should see the scene and an
+<strong>ENTER VR</strong> button. (VR won't actually start on a desktop, but this confirms
+the server works.)</li>
+</ul>
+
+</body>
+</html>
