@@ -33,6 +33,10 @@ export default defineConfig({
     // and pinning the port keeps that URL predictable (preview defaults to 4173).
     host: true,
     port,
+    // Render also runs `vite preview` to serve the deployed build; Vite 7
+    // rejects unrecognized Host headers by default, so the assigned domain
+    // must be allowlisted.
+    allowedHosts: ['cdxexp-p8dp.onrender.com'],
   },
   // Depthkit's .drc/.mp4 assets in public/ are served as-is.
 });
