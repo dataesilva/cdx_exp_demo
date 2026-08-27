@@ -122,7 +122,12 @@ scene.add(posters);
 // Video display to the LEFT of the stage (player enters at ~[0,1.6,3] facing
 // -Z, so -X is their left). Driven by the Timeline — play/pause/seek and audio
 // are in sync with all other tracks via timeline.registerMedia() below.
-const videoScreen = createVideoScreen(scene, './other-media/full-cut_6-18-26.mp4', {
+// Served from external object storage in production (VITE_SHOWREEL_URL, set at
+// build time); falls back to the local copy under public/ for offline dev.
+const SHOWREEL_URL =
+  import.meta.env.VITE_SHOWREEL_URL || './other-media/full-cut_6-18-26.mp4';
+
+const videoScreen = createVideoScreen(scene, SHOWREEL_URL, {
   width: 5.5,
   position: new THREE.Vector3(-4, 0, -2),
   faceTarget: new THREE.Vector3(0, FLAT_EYE_HEIGHT, 3),

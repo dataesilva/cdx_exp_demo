@@ -19,7 +19,7 @@ export async function createFloatingText(textContent, scene, position, size = 1.
     if (!font) {
         const loader = new FontLoader();
         font = await new Promise((resolve, reject) => {
-            loader.load('/fonts/Roboto_Regular.json', resolve, undefined, reject);
+            loader.load('./fonts/Roboto_Regular.json', resolve, undefined, reject);
         });
     }
 

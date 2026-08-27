@@ -11,3 +11,7 @@ Thumbs.db
 
 # keep the Syncthing folder marker
 !.stfolder/
+
+# offloaded to external object storage (see VITE_SHOWREEL_URL)
+public/other-media/
+/full-cut_6-18-26_web.mp4
