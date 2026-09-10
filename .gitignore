@@ -11,8 +11,8 @@ dist/
 .DS_Store
 Thumbs.db
 
-# keep the Syncthing folder marker
-!.stfolder/
+# Syncthing folder marker
+.stfolder/
 
 # offloaded to external object storage (see VITE_SHOWREEL_URL)
 public/other-media/
