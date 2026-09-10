@@ -12,7 +12,7 @@ dist/
 Thumbs.db
 
 # Syncthing folder marker
-.stfolder/*
+*.stfolder/
 
 # offloaded to external object storage (see VITE_SHOWREEL_URL)
 public/other-media/
