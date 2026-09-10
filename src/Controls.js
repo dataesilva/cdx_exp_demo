@@ -38,6 +38,7 @@ export function createFlatControls({ rig, camera, domElement, onFirstMove }) {
   // ---------------------------------------------------------------- keyboard
   function onKey(down) {
     return (e) => {
+      if (!enabled) return;
       switch (e.code) {
         case 'KeyW': case 'ArrowUp': keys.f = down; break;
         case 'KeyS': case 'ArrowDown': keys.b = down; break;

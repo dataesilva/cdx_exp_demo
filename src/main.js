@@ -173,6 +173,8 @@ const controls = createFlatControls({
   domElement: renderer.domElement,
   onFirstMove: hideInstructions, // fade the panel away once you start moving
 });
+// Movement stays off until the welcome/password screen is dismissed.
+controls.setEnabled(false);
 
 // VR controllers: tracked Quest 3 controller models + freeform "grab" locomotion
 // (hold a grip button to pull yourself through the world). Children of the rig,
@@ -258,6 +260,7 @@ async function checkPassword() {
 }
 
 function enterExperience() {
+  controls.setEnabled(true);
   welcomeScreen.classList.add('hidden');
   document.body.classList.add('started');
   helpButton.classList.remove('hidden');
@@ -268,6 +271,7 @@ function enterExperience() {
 }
 
 function exitExperience() {
+  controls.setEnabled(false);
   timeline.pause();
   welcomeScreen.classList.remove('hidden');
   document.body.classList.remove('started');
