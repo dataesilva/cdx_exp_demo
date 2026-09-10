@@ -27,6 +27,7 @@ jobs:
       - run: npm run build
         env:
           VITE_SHOWREEL_URL: ${{ secrets.VITE_SHOWREEL_URL }}
+          VITE_SITE_PASSWORD_HASH: ${{ secrets.VITE_SITE_PASSWORD_HASH }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

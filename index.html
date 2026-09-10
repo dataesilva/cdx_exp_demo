@@ -399,6 +399,27 @@
       .control-list li strong {
         color: #ffffff;
       }
+      .welcome-password-input {
+        width: 100%;
+        max-width: 280px;
+        box-sizing: border-box;
+        padding: 12px 16px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.04);
+        color: #e6e6e6;
+        font-size: 15px;
+        text-align: center;
+      }
+      .welcome-password-input:focus {
+        outline: none;
+        border-color: #4f46e5;
+      }
+      .welcome-password-error {
+        margin: -8px 0 0;
+        font-size: 13px;
+        color: #ff8888;
+      }
       .welcome-start-btn {
         background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
         border: none;
@@ -495,6 +516,9 @@
             <li><strong>Mouse/Touch:</strong> Click and drag to look around. On mobile, use the virtual touch-joystick on the left side to move.</li>
           </ul>
         </div>
+
+        <input type="password" id="password-input" class="welcome-password-input" placeholder="Enter password" autocomplete="off" />
+        <p id="password-error" class="welcome-password-error hidden">Incorrect password</p>
 
         <button id="start-btn" class="welcome-start-btn">Start Experience</button>
       </div>

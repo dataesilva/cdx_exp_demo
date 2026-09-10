@@ -223,6 +223,39 @@ const SHOW_WELCOME_SCREEN = true;
 
 const startBtn = document.getElementById('start-btn');
 const welcomeScreen = document.getElementById('welcome-screen');
+const passwordInput = document.getElementById('password-input');
+const passwordError = document.getElementById('password-error');
+
+// Gate baked in at build time as a SHA-256 hash (VITE_SITE_PASSWORD_HASH, set
+// from a GitHub Actions secret) rather than the plaintext password, so the
+// password itself never lands in the built JS. Not real security — anyone
+// can brute-force the hash offline — just enough to keep casual visitors out
+// of a page with no backend to check against.
+const PASSWORD_HASH = import.meta.env.VITE_SITE_PASSWORD_HASH || '';
+const PASSWORD_OK_KEY = 'cd3-password-ok';
+
+async function sha256Hex(text) {
+  const data = new TextEncoder().encode(text);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+async function checkPassword() {
+  if (!PASSWORD_HASH || localStorage.getItem(PASSWORD_OK_KEY) === 'true') {
+    enterExperience();
+    return;
+  }
+  const hash = await sha256Hex(passwordInput.value);
+  if (hash === PASSWORD_HASH) {
+    localStorage.setItem(PASSWORD_OK_KEY, 'true');
+    passwordError.classList.add('hidden');
+    enterExperience();
+  } else {
+    passwordError.classList.remove('hidden');
+  }
+}
 
 function enterExperience() {
   welcomeScreen.classList.add('hidden');
@@ -247,7 +280,7 @@ function exitExperience() {
 exitButton.addEventListener('click', exitExperience);
 
 if (SHOW_WELCOME_SCREEN) {
-  startBtn.addEventListener('click', enterExperience);
+  startBtn.addEventListener('click', checkPassword);
 } else {
   enterExperience();
 }
